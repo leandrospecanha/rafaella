@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Roda da Vida Dinâmica</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: #f7f7f7;
+    }
+
+    h2 {
+      margin-bottom: 10px;
+    }
+
+    svg {
+      background: white;
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      cursor: crosshair;
+    }
+
+    .grid {
+      fill: none;
+      stroke: #d0d0d0;
+      stroke-width: 1;
+    }
+
+    .axis {
+      stroke: #b5b5b5;
+      stroke-width: 1;
+    }
+
+    .label {
+      font-size: 13px;
+      fill: #333;
+      text-anchor: middle;
+      font-weight: 600;
+    }
+
+    .value-label {
+      font-size: 11px;
+      fill: #666;
+      text-anchor: middle;
+    }
+
+    .area {
+      fill: rgba(0, 123, 255, 0.18);
+      stroke: #007bff;
+      stroke-width: 3;
+    }
+
+    .point {
+      fill: #007bff;
+      stroke: white;
+      stroke-width: 2;
+    }
+
+    .hint {
+      margin-top: 12px;
+      color: #444;
+      font-size: 14px;
+    }
+
+    button {
+      margin-top: 14px;
+      padding: 8px 14px;
+      border: none;
+      border-radius: 8px;
+      background: #0b6b6b;
+      color: white;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      opacity: 0.92;
+    }
+  </style>
+</head>
+<body>
+  <h2>Roda da Vida</h2>
+
+  <svg id="radar" width="820" height="820"></svg>
+
+  <button id="resetBtn">Resetar tudo para 10</button>
+  <div class="hint">Clique em qualquer ponto do gráfico para definir o valor do eixo mais próximo.</div>
+
+  <script>
+    const labels = [
+      "Desenvolvimento Intelectual",
+      "Saúde e Energia",
+      "Equilíbrio Emocional",
+      "Recursos Financeiros",
+      "Contribuição Social",
+      "Realização e Propósito",
+      "Hobbies e Diversão",
+      "Plenitude e Felicidade",
+      "Espiritualidade",
+      "Vida Social",
+      "Relacionamento Amoroso",
+      "Família"
+    ];
+
+    // começa tudo no máximo
+    let values = new Array(labels.length).fill(10);
+
+    const svg = document.getElementById("radar");
+    const resetBtn = document.getElementById("resetBtn");
+
+    const cx = 410;
+    const cy = 410;
+    const maxRadius = 300;
+    const levels = 10;
+    const totalAxes = labels.length;
+    const startAngle = -Math.PI / 2;
+
+    function polarToCartesian(angle, radius) {
+      return {
+        x: cx + Math.cos(angle) * radius,
+        y: cy + Math.sin(angle) * radius
+      };
+    }
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function getAxisAngle(index) {
+      return startAngle + (2 * Math.PI * index / totalAxes);
+    }
+
+    function buildPolygonPoints() {
+      return values.map((value, i) => {
+        const angle = getAxisAngle(i);
+        const radius = (value / 10) * maxRadius;
+        const p = polarToCartesian(angle, radius);
+        return `${p.x},${p.y}`;
+      }).join(" ");
+    }
+
+    function normalizeAngle(angle) {
+      while (angle < -Math.PI) angle += 2 * Math.PI;
+      while (angle > Math.PI) angle -= 2 * Math.PI;
+      return angle;
+    }
+
+    function getNearestAxisIndex(clickAngle) {
+      let nearestIndex = 0;
+      let smallestDiff = Infinity;
+
+      for (let i = 0; i < totalAxes; i++) {
+        const axisAngle = getAxisAngle(i);
+        const diff = Math.abs(normalizeAngle(clickAngle - axisAngle));
+
+        if (diff < smallestDiff) {
+          smallestDiff = diff;
+          nearestIndex = i;
+        }
+      }
+
+      return nearestIndex;
+    }
+
+    function drawRadar() {
+      svg.innerHTML = "";
+
+      // grades
+      for (let level = 1; level <= levels; level++) {
+        const radius = (level / levels) * maxRadius;
+        const ringPoints = [];
+
+        for (let i = 0; i < totalAxes; i++) {
+          const angle = getAxisAngle(i);
+          const p = polarToCartesian(angle, radius);
+          ringPoints.push(`${p.x},${p.y}`);
+        }
+
+        const polygon = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+        polygon.setAttribute("points", ringPoints.join(" "));
+        polygon.setAttribute("class", "grid");
+        svg.appendChild(polygon);
+      }
+
+      // números das escalas
+      for (let level = 1; level <= levels; level++) {
+        const radius = (level / levels) * maxRadius;
+        const t = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        t.setAttribute("x", cx + 14);
+        t.setAttribute("y", cy - radius + 4);
+        t.setAttribute("class", "value-label");
+        t.textContent = level;
+        svg.appendChild(t);
+      }
+
+      // eixos + labels
+      for (let i = 0; i < totalAxes; i++) {
+        const angle = getAxisAngle(i);
+        const end = polarToCartesian(angle, maxRadius);
+
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        line.setAttribute("x1", cx);
+        line.setAttribute("y1", cy);
+        line.setAttribute("x2", end.x);
+        line.setAttribute("y2", end.y);
+        line.setAttribute("class", "axis");
+        svg.appendChild(line);
+
+        const labelPos = polarToCartesian(angle, maxRadius + 52);
+        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        text.setAttribute("x", labelPos.x);
+        text.setAttribute("y", labelPos.y);
+        text.setAttribute("class", "label");
+        text.textContent = labels[i];
+        svg.appendChild(text);
+      }
+
+      // área
+      const area = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+      area.setAttribute("points", buildPolygonPoints());
+      area.setAttribute("class", "area");
+      svg.appendChild(area);
+
+      // pontos
+      for (let i = 0; i < totalAxes; i++) {
+        const angle = getAxisAngle(i);
+        const radius = (values[i] / 10) * maxRadius;
+        const p = polarToCartesian(angle, radius);
+
+        const point = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        point.setAttribute("cx", p.x);
+        point.setAttribute("cy", p.y);
+        point.setAttribute("r", 7);
+        point.setAttribute("class", "point");
+        point.setAttribute("title", `${labels[i]}: ${values[i]}`);
+        svg.appendChild(point);
+
+        const valueText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        valueText.setAttribute("x", p.x);
+        valueText.setAttribute("y", p.y - 12);
+        valueText.setAttribute("class", "value-label");
+        valueText.textContent = values[i];
+        svg.appendChild(valueText);
+      }
+
+      // centro
+      const centerDot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      centerDot.setAttribute("cx", cx);
+      centerDot.setAttribute("cy", cy);
+      centerDot.setAttribute("r", 3);
+      centerDot.setAttribute("fill", "#666");
+      svg.appendChild(centerDot);
+    }
+
+    function updateByClick(event) {
+      const rect = svg.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+
+      const dx = x - cx;
+      const dy = y - cy;
+
+      const rawAngle = Math.atan2(dy, dx);
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      const axisIndex = getNearestAxisIndex(rawAngle);
+      const normalizedValue = clamp(Math.round((distance / maxRadius) * 10), 0, 10);
+
+      values[axisIndex] = normalizedValue;
+      drawRadar();
+    }
+
+    svg.addEventListener("click", updateByClick);
+
+    resetBtn.addEventListener("click", () => {
+      values = new Array(labels.length).fill(10);
+      drawRadar();
+    });
+
+    drawRadar();
+  </script>
+</body>
+</html>
