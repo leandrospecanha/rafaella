@@ -3,93 +3,200 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Roda da Vida Dinâmica</title>
+  <title>Roda da Vida</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      background: #f7f7f7;
+    * {
+      box-sizing: border-box;
     }
 
-    h2 {
-      margin-bottom: 10px;
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f5f7f8;
+      color: #1f2937;
+    }
+
+    .page {
+      width: 100%;
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+      text-align: center;
+    }
+
+    .subtitulo {
+      margin: 0 0 16px;
+      text-align: center;
+      color: #4b5563;
+      font-size: 15px;
+      line-height: 1.4;
+    }
+
+    .card {
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
+      padding: 12px;
+    }
+
+    .radar-wrap {
+      width: 100%;
     }
 
     svg {
-      background: white;
-      border: 1px solid #ccc;
+      display: block;
+      width: 100%;
+      height: auto;
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
+      background: #fff;
       border-radius: 12px;
-      cursor: crosshair;
     }
 
     .grid {
       fill: none;
-      stroke: #d0d0d0;
+      stroke: #d1d5db;
       stroke-width: 1;
     }
 
     .axis {
-      stroke: #b5b5b5;
+      stroke: #c4cbd4;
       stroke-width: 1;
     }
 
+    .area {
+      fill: rgba(11, 107, 107, 0.18);
+      stroke: #0b6b6b;
+      stroke-width: 3;
+    }
+
+    .point {
+      fill: #0b6b6b;
+      stroke: #ffffff;
+      stroke-width: 2.5;
+      cursor: pointer;
+    }
+
     .label {
-      font-size: 13px;
-      fill: #333;
+      font-size: 12px;
+      fill: #374151;
       text-anchor: middle;
       font-weight: 600;
     }
 
     .value-label {
       font-size: 11px;
-      fill: #666;
+      fill: #6b7280;
       text-anchor: middle;
+      font-weight: 600;
     }
 
-    .area {
-      fill: rgba(0, 123, 255, 0.18);
-      stroke: #007bff;
-      stroke-width: 3;
+    .controls {
+      display: flex;
+      justify-content: center;
+      margin-top: 14px;
     }
 
-    .point {
-      fill: #007bff;
-      stroke: white;
-      stroke-width: 2;
+    button {
+      border: none;
+      border-radius: 10px;
+      padding: 10px 16px;
+      font-size: 14px;
+      background: #0b6b6b;
+      color: white;
+      cursor: pointer;
     }
 
     .hint {
       margin-top: 12px;
-      color: #444;
+      text-align: center;
       font-size: 14px;
+      color: #4b5563;
+      line-height: 1.4;
     }
 
-    button {
-      margin-top: 14px;
-      padding: 8px 14px;
-      border: none;
-      border-radius: 8px;
-      background: #0b6b6b;
-      color: white;
-      font-size: 14px;
-      cursor: pointer;
+    @media (max-width: 768px) {
+      .page {
+        padding: 10px;
+      }
+
+      h1 {
+        font-size: 22px;
+      }
+
+      .subtitulo {
+        font-size: 14px;
+      }
+
+      .card {
+        padding: 8px;
+        border-radius: 12px;
+      }
+
+      .label {
+        font-size: 10px;
+      }
+
+      .value-label {
+        font-size: 9px;
+      }
+
+      button {
+        width: 100%;
+        max-width: 320px;
+      }
+
+      .hint {
+        font-size: 13px;
+      }
     }
 
-    button:hover {
-      opacity: 0.92;
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 20px;
+      }
+
+      .label {
+        font-size: 9px;
+      }
+
+      .value-label {
+        font-size: 8px;
+      }
+
+      .subtitulo {
+        font-size: 13px;
+      }
     }
   </style>
 </head>
 <body>
-  <h2>Roda da Vida</h2>
+  <div class="page">
+    <h1>Roda da Vida</h1>
+    <p class="subtitulo">
+      Toque em qualquer área do gráfico para definir a nota do eixo mais próximo.
+    </p>
 
-  <svg id="radar" width="820" height="820"></svg>
+    <div class="card">
+      <div class="radar-wrap">
+        <svg id="radar" viewBox="0 0 820 820" preserveAspectRatio="xMidYMid meet"></svg>
+      </div>
 
-  <button id="resetBtn">Resetar tudo para 10</button>
-  <div class="hint">Clique em qualquer ponto do gráfico para definir o valor do eixo mais próximo.</div>
+      <div class="controls">
+        <button id="resetBtn">Resetar tudo para 10</button>
+      </div>
+
+      <div class="hint">
+        No celular, toque próximo do eixo desejado. Quanto mais longe do centro, maior a nota.
+      </div>
+    </div>
+  </div>
 
   <script>
     const labels = [
@@ -107,7 +214,6 @@
       "Família"
     ];
 
-    // começa tudo no máximo
     let values = new Array(labels.length).fill(10);
 
     const svg = document.getElementById("radar");
@@ -115,7 +221,7 @@
 
     const cx = 410;
     const cy = 410;
-    const maxRadius = 300;
+    const maxRadius = 255;
     const levels = 10;
     const totalAxes = labels.length;
     const startAngle = -Math.PI / 2;
@@ -133,15 +239,6 @@
 
     function getAxisAngle(index) {
       return startAngle + (2 * Math.PI * index / totalAxes);
-    }
-
-    function buildPolygonPoints() {
-      return values.map((value, i) => {
-        const angle = getAxisAngle(i);
-        const radius = (value / 10) * maxRadius;
-        const p = polarToCartesian(angle, radius);
-        return `${p.x},${p.y}`;
-      }).join(" ");
     }
 
     function normalizeAngle(angle) {
@@ -167,10 +264,35 @@
       return nearestIndex;
     }
 
+    function buildPolygonPoints() {
+      return values.map((value, i) => {
+        const angle = getAxisAngle(i);
+        const radius = (value / 10) * maxRadius;
+        const p = polarToCartesian(angle, radius);
+        return `${p.x},${p.y}`;
+      }).join(" ");
+    }
+
+    function createSvgElement(tag, attrs = {}) {
+      const el = document.createElementNS("http://www.w3.org/2000/svg", tag);
+      Object.entries(attrs).forEach(([key, value]) => el.setAttribute(key, value));
+      return el;
+    }
+
+    function splitLabel(text) {
+      const words = text.split(" ");
+      if (words.length <= 2) return [text];
+
+      const middle = Math.ceil(words.length / 2);
+      return [
+        words.slice(0, middle).join(" "),
+        words.slice(middle).join(" ")
+      ];
+    }
+
     function drawRadar() {
       svg.innerHTML = "";
 
-      // grades
       for (let level = 1; level <= levels; level++) {
         const radius = (level / levels) * maxRadius;
         const ringPoints = [];
@@ -181,89 +303,114 @@
           ringPoints.push(`${p.x},${p.y}`);
         }
 
-        const polygon = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
-        polygon.setAttribute("points", ringPoints.join(" "));
-        polygon.setAttribute("class", "grid");
-        svg.appendChild(polygon);
+        svg.appendChild(createSvgElement("polygon", {
+          points: ringPoints.join(" "),
+          class: "grid"
+        }));
       }
 
-      // números das escalas
       for (let level = 1; level <= levels; level++) {
         const radius = (level / levels) * maxRadius;
-        const t = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        t.setAttribute("x", cx + 14);
-        t.setAttribute("y", cy - radius + 4);
-        t.setAttribute("class", "value-label");
-        t.textContent = level;
-        svg.appendChild(t);
+        svg.appendChild(createSvgElement("text", {
+          x: cx + 14,
+          y: cy - radius + 4,
+          class: "value-label"
+        })).textContent = level;
       }
 
-      // eixos + labels
       for (let i = 0; i < totalAxes; i++) {
         const angle = getAxisAngle(i);
         const end = polarToCartesian(angle, maxRadius);
 
-        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-        line.setAttribute("x1", cx);
-        line.setAttribute("y1", cy);
-        line.setAttribute("x2", end.x);
-        line.setAttribute("y2", end.y);
-        line.setAttribute("class", "axis");
-        svg.appendChild(line);
+        svg.appendChild(createSvgElement("line", {
+          x1: cx,
+          y1: cy,
+          x2: end.x,
+          y2: end.y,
+          class: "axis"
+        }));
 
-        const labelPos = polarToCartesian(angle, maxRadius + 52);
-        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        text.setAttribute("x", labelPos.x);
-        text.setAttribute("y", labelPos.y);
-        text.setAttribute("class", "label");
-        text.textContent = labels[i];
-        svg.appendChild(text);
+        const labelPos = polarToCartesian(angle, maxRadius + 58);
+        const lines = splitLabel(labels[i]);
+
+        const textEl = createSvgElement("text", {
+          x: labelPos.x,
+          y: labelPos.y,
+          class: "label"
+        });
+
+        lines.forEach((line, idx) => {
+          const tspan = createSvgElement("tspan", {
+            x: labelPos.x,
+            dy: idx === 0 ? "0" : "13"
+          });
+          tspan.textContent = line;
+          textEl.appendChild(tspan);
+        });
+
+        svg.appendChild(textEl);
       }
 
-      // área
-      const area = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
-      area.setAttribute("points", buildPolygonPoints());
-      area.setAttribute("class", "area");
-      svg.appendChild(area);
+      svg.appendChild(createSvgElement("polygon", {
+        points: buildPolygonPoints(),
+        class: "area"
+      }));
 
-      // pontos
       for (let i = 0; i < totalAxes; i++) {
         const angle = getAxisAngle(i);
         const radius = (values[i] / 10) * maxRadius;
         const p = polarToCartesian(angle, radius);
 
-        const point = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-        point.setAttribute("cx", p.x);
-        point.setAttribute("cy", p.y);
-        point.setAttribute("r", 7);
-        point.setAttribute("class", "point");
-        point.setAttribute("title", `${labels[i]}: ${values[i]}`);
-        svg.appendChild(point);
+        svg.appendChild(createSvgElement("circle", {
+          cx: p.x,
+          cy: p.y,
+          r: 8,
+          class: "point"
+        }));
 
-        const valueText = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        valueText.setAttribute("x", p.x);
-        valueText.setAttribute("y", p.y - 12);
-        valueText.setAttribute("class", "value-label");
+        const valueText = createSvgElement("text", {
+          x: p.x,
+          y: p.y - 12,
+          class: "value-label"
+        });
         valueText.textContent = values[i];
         svg.appendChild(valueText);
       }
 
-      // centro
-      const centerDot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-      centerDot.setAttribute("cx", cx);
-      centerDot.setAttribute("cy", cy);
-      centerDot.setAttribute("r", 3);
-      centerDot.setAttribute("fill", "#666");
-      svg.appendChild(centerDot);
+      svg.appendChild(createSvgElement("circle", {
+        cx: cx,
+        cy: cy,
+        r: 3,
+        fill: "#6b7280"
+      }));
     }
 
-    function updateByClick(event) {
+    function getSvgPointFromEvent(event) {
       const rect = svg.getBoundingClientRect();
-      const x = event.clientX - rect.left;
-      const y = event.clientY - rect.top;
 
-      const dx = x - cx;
-      const dy = y - cy;
+      let clientX, clientY;
+
+      if (event.touches && event.touches.length > 0) {
+        clientX = event.touches[0].clientX;
+        clientY = event.touches[0].clientY;
+      } else {
+        clientX = event.clientX;
+        clientY = event.clientY;
+      }
+
+      const scaleX = 820 / rect.width;
+      const scaleY = 820 / rect.height;
+
+      return {
+        x: (clientX - rect.left) * scaleX,
+        y: (clientY - rect.top) * scaleY
+      };
+    }
+
+    function updateByPointer(event) {
+      const point = getSvgPointFromEvent(event);
+      const dx = point.x - cx;
+      const dy = point.y - cy;
 
       const rawAngle = Math.atan2(dy, dx);
       const distance = Math.sqrt(dx * dx + dy * dy);
@@ -275,7 +422,12 @@
       drawRadar();
     }
 
-    svg.addEventListener("click", updateByClick);
+    svg.addEventListener("click", updateByPointer);
+
+    svg.addEventListener("touchstart", (event) => {
+      event.preventDefault();
+      updateByPointer(event);
+    }, { passive: false });
 
     resetBtn.addEventListener("click", () => {
       values = new Array(labels.length).fill(10);
