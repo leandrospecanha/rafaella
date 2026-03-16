@@ -152,7 +152,7 @@
     <p class="subtitulo">Toque ou arraste a bolinha para ajustar a nota</p>
 
     <div class="card">
-      <svg id="radar" viewBox="0 0 800 800"></svg>
+      <svg id="radar" viewBox="0 0 920 920"></svg>
 
       <div class="controls">
         <button id="resetBtn">Resetar tudo para 10</button>
@@ -183,17 +183,18 @@
     const svg = document.getElementById("radar");
     const resetBtn = document.getElementById("resetBtn");
 
-    const cx = 400;
-    const cy = 400;
-    const maxRadius = 285;
+    const cx = 460;
+    const cy = 460;
+    const maxRadius = 255;
     const levels = 10;
     const totalAxes = labels.length;
     const startAngle = -Math.PI / 2;
     const pointRadius = 14;
-    const dragCaptureRadius = 28;
+    const badgeRadius = 14;
+    const badgeDistance = 28;
 
     let draggingAxisIndex = null;
-    let pointerMoved = false;
+    let activePointerId = null;
 
     function polarToCartesian(angle, radius) {
       return {
@@ -216,13 +217,13 @@
       return angle;
     }
 
-    function getNearestAxisIndex(clickAngle) {
+    function getNearestAxisIndex(angle) {
       let nearestIndex = 0;
       let smallestDiff = Infinity;
 
       for (let i = 0; i < totalAxes; i++) {
         const axisAngle = getAxisAngle(i);
-        const diff = Math.abs(normalizeAngle(clickAngle - axisAngle));
+        const diff = Math.abs(normalizeAngle(angle - axisAngle));
 
         if (diff < smallestDiff) {
           smallestDiff = diff;
@@ -231,12 +232,6 @@
       }
 
       return nearestIndex;
-    }
-
-    function getPointPosition(index) {
-      const angle = getAxisAngle(index);
-      const radius = (values[index] / 10) * maxRadius;
-      return polarToCartesian(angle, radius);
     }
 
     function buildPolygonPoints() {
@@ -254,44 +249,83 @@
       return el;
     }
 
-    function getLabelConfig(angle, text) {
+    function getPointPosition(index) {
+      const angle = getAxisAngle(index);
+      const radius = (values[index] / 10) * maxRadius;
+      return polarToCartesian(angle, radius);
+    }
+
+    function getBadgePosition(index) {
+      const angle = getAxisAngle(index);
+      const p = getPointPosition(index);
+      return {
+        x: p.x + Math.cos(angle) * badgeDistance,
+        y: p.y + Math.sin(angle) * badgeDistance
+      };
+    }
+
+    function getLabelConfig(index) {
+      const angle = getAxisAngle(index);
       const cos = Math.cos(angle);
       const sin = Math.sin(angle);
+      const label = labels[index];
 
-      let distance = maxRadius + 78;
+      let distance = maxRadius + 82;
       let textAnchor = "middle";
       let dx = 0;
       let dy = 0;
 
-      if (cos > 0.8) {
-        distance = maxRadius + 92;
-        textAnchor = "start";
-        dx = 10;
-      } else if (cos < -0.8) {
-        distance = maxRadius + 92;
-        textAnchor = "end";
-        dx = -10;
-      } else if (sin > 0.8) {
-        distance = maxRadius + 78;
-        dy = 12;
-      } else if (sin < -0.8) {
-        distance = maxRadius + 86;
-        dy = -4;
-      }
-
-      if (text === "Finanças") {
-        distance = maxRadius + 104;
+      if (cos > 0.75) {
+        distance = maxRadius + 96;
         textAnchor = "start";
         dx = 14;
-      }
-
-      if (text === "Vida Social") {
-        distance = maxRadius + 104;
+      } else if (cos < -0.75) {
+        distance = maxRadius + 96;
         textAnchor = "end";
         dx = -14;
+      } else if (sin > 0.75) {
+        distance = maxRadius + 88;
+        dy = 16;
+      } else if (sin < -0.75) {
+        distance = maxRadius + 96;
+        dy = -8;
       }
 
-      return { distance, textAnchor, dx, dy };
+      if (label === "Finanças") {
+        distance = maxRadius + 110;
+        textAnchor = "start";
+        dx = 22;
+      }
+
+      if (label === "Vida Social") {
+        distance = maxRadius + 110;
+        textAnchor = "end";
+        dx = -22;
+      }
+
+      if (label === "Emocional") {
+        distance = maxRadius + 104;
+        textAnchor = "start";
+        dx = 12;
+      }
+
+      if (label === "Amoroso") {
+        distance = maxRadius + 104;
+        textAnchor = "end";
+        dx = -12;
+      }
+
+      if (label === "Intelectual") {
+        distance = maxRadius + 98;
+        dy = -8;
+      }
+
+      if (label === "Plenitude") {
+        distance = maxRadius + 98;
+        dy = 18;
+      }
+
+      return { angle, distance, textAnchor, dx, dy };
     }
 
     function drawRadar() {
@@ -324,9 +358,44 @@
           y2: end.y,
           class: "axis"
         }));
+      }
 
-        const cfg = getLabelConfig(angle, labels[i]);
-        const labelPos = polarToCartesian(angle, cfg.distance);
+      svg.appendChild(createSvgElement("polygon", {
+        points: buildPolygonPoints(),
+        class: "area"
+      }));
+
+      for (let i = 0; i < totalAxes; i++) {
+        const angle = getAxisAngle(i);
+        const p = getPointPosition(i);
+        const badge = getBadgePosition(i);
+
+        svg.appendChild(createSvgElement("circle", {
+          cx: p.x,
+          cy: p.y,
+          r: pointRadius,
+          class: draggingAxisIndex === i ? "point dragging" : "point"
+        }));
+
+        svg.appendChild(createSvgElement("circle", {
+          cx: badge.x,
+          cy: badge.y,
+          r: badgeRadius,
+          class: "value-badge"
+        }));
+
+        const valueText = createSvgElement("text", {
+          x: badge.x,
+          y: badge.y + 0.5,
+          class: "value-text"
+        });
+        valueText.textContent = values[i];
+        svg.appendChild(valueText);
+      }
+
+      for (let i = 0; i < totalAxes; i++) {
+        const cfg = getLabelConfig(i);
+        const labelPos = polarToCartesian(cfg.angle, cfg.distance);
 
         const txt = createSvgElement("text", {
           x: labelPos.x + cfg.dx,
@@ -340,43 +409,6 @@
         svg.appendChild(txt);
       }
 
-      svg.appendChild(createSvgElement("polygon", {
-        points: buildPolygonPoints(),
-        class: "area"
-      }));
-
-      for (let i = 0; i < totalAxes; i++) {
-        const angle = getAxisAngle(i);
-        const p = getPointPosition(i);
-
-        const pointEl = createSvgElement("circle", {
-          cx: p.x,
-          cy: p.y,
-          r: pointRadius,
-          class: draggingAxisIndex === i ? "point dragging" : "point"
-        });
-        svg.appendChild(pointEl);
-
-        const badgeDistance = 28;
-        const bx = p.x + Math.cos(angle) * badgeDistance;
-        const by = p.y + Math.sin(angle) * badgeDistance;
-
-        svg.appendChild(createSvgElement("circle", {
-          cx: bx,
-          cy: by,
-          r: 14,
-          class: "value-badge"
-        }));
-
-        const valueText = createSvgElement("text", {
-          x: bx,
-          y: by + 0.5,
-          class: "value-text"
-        });
-        valueText.textContent = values[i];
-        svg.appendChild(valueText);
-      }
-
       svg.appendChild(createSvgElement("circle", {
         cx: cx,
         cy: cy,
@@ -387,47 +419,86 @@
 
     function getSvgPointFromEvent(event) {
       const rect = svg.getBoundingClientRect();
-      let clientX, clientY;
-
-      if (event.touches && event.touches.length > 0) {
-        clientX = event.touches[0].clientX;
-        clientY = event.touches[0].clientY;
-      } else if (event.changedTouches && event.changedTouches.length > 0) {
-        clientX = event.changedTouches[0].clientX;
-        clientY = event.changedTouches[0].clientY;
-      } else {
-        clientX = event.clientX;
-        clientY = event.clientY;
-      }
-
-      const scale = 800 / rect.width;
+      const scale = 920 / rect.width;
 
       return {
-        x: (clientX - rect.left) * scale,
-        y: (clientY - rect.top) * scale
+        x: (event.clientX - rect.left) * scale,
+        y: (event.clientY - rect.top) * scale
       };
     }
 
-    function getAxisNearPoint(point) {
-      for (let i = 0; i < totalAxes; i++) {
-        const p = getPointPosition(i);
-        const dx = point.x - p.x;
-        const dy = point.y - p.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
+    function distance(a, b) {
+      const dx = a.x - b.x;
+      const dy = a.y - b.y;
+      return Math.sqrt(dx * dx + dy * dy);
+    }
 
-        if (distance <= dragCaptureRadius) {
-          return i;
+    function pointToSegmentDistance(point, segA, segB) {
+      const vx = segB.x - segA.x;
+      const vy = segB.y - segA.y;
+      const wx = point.x - segA.x;
+      const wy = point.y - segA.y;
+
+      const c1 = vx * wx + vy * wy;
+      if (c1 <= 0) return distance(point, segA);
+
+      const c2 = vx * vx + vy * vy;
+      if (c2 <= c1) return distance(point, segB);
+
+      const t = c1 / c2;
+      const proj = {
+        x: segA.x + t * vx,
+        y: segA.y + t * vy
+      };
+
+      return distance(point, proj);
+    }
+
+    function getAxisNearPoint(point) {
+      const axisBandDistance = 34;
+      const pointCaptureDistance = 58;
+      const badgeCaptureDistance = 64;
+
+      let bestAxis = null;
+      let bestScore = Infinity;
+
+      for (let i = 0; i < totalAxes; i++) {
+        const pointPos = getPointPosition(i);
+        const badgePos = getBadgePosition(i);
+        const axisEnd = polarToCartesian(getAxisAngle(i), maxRadius);
+
+        const distPoint = distance(point, pointPos);
+        const distBadge = distance(point, badgePos);
+        const distAxis = pointToSegmentDistance(point, { x: cx, y: cy }, axisEnd);
+
+        let score = Infinity;
+
+        if (distPoint <= pointCaptureDistance) {
+          score = Math.min(score, distPoint);
+        }
+
+        if (distBadge <= badgeCaptureDistance) {
+          score = Math.min(score, distBadge - 4);
+        }
+
+        if (distAxis <= axisBandDistance) {
+          score = Math.min(score, distAxis + 12);
+        }
+
+        if (score < bestScore) {
+          bestScore = score;
+          bestAxis = i;
         }
       }
 
-      return null;
+      return bestAxis;
     }
 
     function updateAxisValueFromPoint(axisIndex, point) {
       const dx = point.x - cx;
       const dy = point.y - cy;
-      const distance = Math.sqrt(dx * dx + dy * dy);
-      const normalizedValue = clamp(Math.round((distance / maxRadius) * 10), 0, 10);
+      const distanceFromCenter = Math.sqrt(dx * dx + dy * dy);
+      const normalizedValue = clamp(Math.round((distanceFromCenter / maxRadius) * 10), 0, 10);
 
       values[axisIndex] = normalizedValue;
       drawRadar();
@@ -436,62 +507,67 @@
     function updateNearestAxisFromPoint(point) {
       const dx = point.x - cx;
       const dy = point.y - cy;
-      const rawAngle = Math.atan2(dy, dx);
-      const distance = Math.sqrt(dx * dx + dy * dy);
+      const angle = Math.atan2(dy, dx);
+      const distanceFromCenter = Math.sqrt(dx * dx + dy * dy);
 
-      const axisIndex = getNearestAxisIndex(rawAngle);
-      const normalizedValue = clamp(Math.round((distance / maxRadius) * 10), 0, 10);
+      const axisIndex = getNearestAxisIndex(angle);
+      const normalizedValue = clamp(Math.round((distanceFromCenter / maxRadius) * 10), 0, 10);
 
       values[axisIndex] = normalizedValue;
       drawRadar();
     }
 
-    function handlePointerStart(event) {
+    function handlePointerDown(event) {
       event.preventDefault();
 
+      activePointerId = event.pointerId;
+      if (svg.setPointerCapture) {
+        svg.setPointerCapture(event.pointerId);
+      }
+
       const point = getSvgPointFromEvent(event);
-      const nearAxis = getAxisNearPoint(point);
+      draggingAxisIndex = getAxisNearPoint(point);
 
-      pointerMoved = false;
-
-      if (nearAxis !== null) {
-        draggingAxisIndex = nearAxis;
+      if (draggingAxisIndex !== null) {
         updateAxisValueFromPoint(draggingAxisIndex, point);
       } else {
-        draggingAxisIndex = null;
         updateNearestAxisFromPoint(point);
       }
     }
 
     function handlePointerMove(event) {
+      if (activePointerId !== event.pointerId) return;
       if (draggingAxisIndex === null) return;
 
       event.preventDefault();
-      pointerMoved = true;
-
       const point = getSvgPointFromEvent(event);
       updateAxisValueFromPoint(draggingAxisIndex, point);
     }
 
-    function handlePointerEnd() {
+    function handlePointerUp(event) {
+      if (activePointerId !== event.pointerId) return;
+
+      if (svg.releasePointerCapture) {
+        try {
+          svg.releasePointerCapture(event.pointerId);
+        } catch (e) {}
+      }
+
+      activePointerId = null;
       draggingAxisIndex = null;
-      pointerMoved = false;
       drawRadar();
     }
 
-    svg.addEventListener("mousedown", handlePointerStart);
-    svg.addEventListener("touchstart", handlePointerStart, { passive: false });
-
-    window.addEventListener("mousemove", handlePointerMove);
-    window.addEventListener("touchmove", handlePointerMove, { passive: false });
-
-    window.addEventListener("mouseup", handlePointerEnd);
-    window.addEventListener("touchend", handlePointerEnd);
-    window.addEventListener("touchcancel", handlePointerEnd);
+    svg.addEventListener("pointerdown", handlePointerDown);
+    svg.addEventListener("pointermove", handlePointerMove);
+    svg.addEventListener("pointerup", handlePointerUp);
+    svg.addEventListener("pointercancel", handlePointerUp);
+    svg.addEventListener("pointerleave", handlePointerUp);
 
     resetBtn.addEventListener("click", () => {
       values = new Array(labels.length).fill(10);
       draggingAxisIndex = null;
+      activePointerId = null;
       drawRadar();
     });
 
