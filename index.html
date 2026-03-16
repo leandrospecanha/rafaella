@@ -1,577 +1,436 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Roda da Vida</title>
-  <style>
-    * {
-      box-sizing: border-box;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Roda da Vida</title>
 
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f5f7f8;
-      color: #1f2937;
-    }
+<style>
 
-    .page {
-      max-width: 900px;
-      margin: auto;
-      padding: 10px;
-    }
+*{box-sizing:border-box;}
 
-    h1 {
-      text-align: center;
-      font-size: 28px;
-      margin: 0 0 6px;
-    }
+body{
+margin:0;
+font-family:Arial, sans-serif;
+background:#f5f7f8;
+color:#1f2937;
+}
 
-    .subtitulo {
-      text-align: center;
-      margin: 0 0 12px;
-      color: #555;
-      font-size: 16px;
-      line-height: 1.4;
-    }
+.page{
+max-width:920px;
+margin:auto;
+padding:10px;
+}
 
-    .card {
-      background: white;
-      border-radius: 16px;
-      padding: 10px;
-      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
-    }
+h1{
+text-align:center;
+font-size:28px;
+margin:0 0 6px;
+}
 
-    svg {
-      width: 100%;
-      height: auto;
-      display: block;
-      touch-action: none;
-      user-select: none;
-      -webkit-user-select: none;
-    }
+.subtitulo{
+text-align:center;
+margin:0 0 12px;
+color:#555;
+font-size:16px;
+}
 
-    .grid {
-      fill: none;
-      stroke: #d1d5db;
-      stroke-width: 1.2;
-    }
+.card{
+background:white;
+border-radius:16px;
+padding:10px;
+box-shadow:0 6px 24px rgba(0,0,0,0.08);
+}
 
-    .axis {
-      stroke: #c4cbd4;
-      stroke-width: 1.2;
-    }
+svg{
+width:100%;
+height:auto;
+display:block;
+touch-action:none;
+}
 
-    .area {
-      fill: rgba(11, 107, 107, 0.16);
-      stroke: #0b6b6b;
-      stroke-width: 3;
-    }
+.grid{
+fill:none;
+stroke:#d1d5db;
+stroke-width:1.2;
+}
 
-    .point {
-      fill: #0b6b6b;
-      stroke: white;
-      stroke-width: 3;
-      cursor: pointer;
-    }
+.axis{
+stroke:#c4cbd4;
+stroke-width:1.2;
+}
 
-    .point.dragging {
-      fill: #0a5f5f;
-    }
+.area{
+fill:rgba(11,107,107,0.16);
+stroke:#0b6b6b;
+stroke-width:3;
+}
 
-    .label {
-      font-size: 16px;
-      font-weight: 700;
-      fill: #2f3a45;
-    }
+.point{
+fill:#0b6b6b;
+stroke:white;
+stroke-width:3;
+}
 
-    .value-badge {
-      fill: #ffffff;
-      stroke: #0b6b6b;
-      stroke-width: 2;
-      filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.18));
-    }
+.label{
+font-size:18px;
+font-weight:700;
+fill:#2f3a45;
+}
 
-    .value-text {
-      font-size: 15px;
-      text-anchor: middle;
-      dominant-baseline: middle;
-      fill: #0b6b6b;
-      font-weight: 800;
-      pointer-events: none;
-    }
+.value-badge{
+fill:#ffffff;
+stroke:#0b6b6b;
+stroke-width:2;
+}
 
-    .controls {
-      text-align: center;
-      margin-top: 16px;
-    }
+.value-text{
+font-size:16px;
+text-anchor:middle;
+dominant-baseline:middle;
+fill:#0b6b6b;
+font-weight:800;
+}
 
-    button {
-      background: #0b6b6b;
-      border: none;
-      color: white;
-      padding: 12px 18px;
-      border-radius: 10px;
-      font-size: 16px;
-      width: 100%;
-      max-width: 400px;
-      cursor: pointer;
-    }
+.controls{
+text-align:center;
+margin-top:16px;
+}
 
-    .hint {
-      text-align: center;
-      margin-top: 10px;
-      font-size: 14px;
-      color: #555;
-      line-height: 1.5;
-    }
+button{
+background:#0b6b6b;
+border:none;
+color:white;
+padding:12px 18px;
+border-radius:10px;
+font-size:16px;
+width:100%;
+max-width:420px;
+cursor:pointer;
+}
 
-    @media (max-width: 480px) {
-      h1 {
-        font-size: 24px;
-      }
-
-      .subtitulo {
-        font-size: 15px;
-      }
-
-      .label {
-        font-size: 14px;
-      }
-
-      .value-text {
-        font-size: 14px;
-      }
-    }
-  </style>
+</style>
 </head>
+
 <body>
-  <div class="page">
-    <h1>Roda da Vida</h1>
-    <p class="subtitulo">Toque ou arraste a bolinha para ajustar a nota</p>
-
-    <div class="card">
-      <svg id="radar" viewBox="0 0 920 920"></svg>
-
-      <div class="controls">
-        <button id="resetBtn">Resetar tudo para 10</button>
-      </div>
-
-      <div class="hint">
-        Toque no gráfico para definir rápido ou arraste a bolinha para ajustar com mais precisão.
-      </div>
-    </div>
-  </div>
-
-  <script>
-    const labels = [
-      "Intelectual",
-      "Saúde",
-      "Emocional",
-      "Finanças",
-      "Social",
-      "Plenitude",
-      "Espiritualidade",
-      "Vida Social",
-      "Amoroso",
-      "Família"
-    ];
-
-    let values = new Array(labels.length).fill(10);
-
-    const svg = document.getElementById("radar");
-    const resetBtn = document.getElementById("resetBtn");
-
-    const cx = 460;
-    const cy = 460;
-    const maxRadius = 255;
-    const levels = 10;
-    const totalAxes = labels.length;
-    const startAngle = -Math.PI / 2;
-    const pointRadius = 14;
-    const badgeRadius = 14;
-    const badgeDistance = 28;
-
-    let draggingAxisIndex = null;
-    let activePointerId = null;
-
-    function polarToCartesian(angle, radius) {
-      return {
-        x: cx + Math.cos(angle) * radius,
-        y: cy + Math.sin(angle) * radius
-      };
-    }
-
-    function clamp(value, min, max) {
-      return Math.max(min, Math.min(max, value));
-    }
-
-    function getAxisAngle(index) {
-      return startAngle + (2 * Math.PI * index / totalAxes);
-    }
-
-    function normalizeAngle(angle) {
-      while (angle < -Math.PI) angle += 2 * Math.PI;
-      while (angle > Math.PI) angle -= 2 * Math.PI;
-      return angle;
-    }
-
-    function getNearestAxisIndex(angle) {
-      let nearestIndex = 0;
-      let smallestDiff = Infinity;
-
-      for (let i = 0; i < totalAxes; i++) {
-        const axisAngle = getAxisAngle(i);
-        const diff = Math.abs(normalizeAngle(angle - axisAngle));
-
-        if (diff < smallestDiff) {
-          smallestDiff = diff;
-          nearestIndex = i;
-        }
-      }
-
-      return nearestIndex;
-    }
-
-    function buildPolygonPoints() {
-      return values.map((value, i) => {
-        const angle = getAxisAngle(i);
-        const radius = (value / 10) * maxRadius;
-        const p = polarToCartesian(angle, radius);
-        return `${p.x},${p.y}`;
-      }).join(" ");
-    }
-
-    function createSvgElement(tag, attrs = {}) {
-      const el = document.createElementNS("http://www.w3.org/2000/svg", tag);
-      Object.entries(attrs).forEach(([key, value]) => el.setAttribute(key, value));
-      return el;
-    }
-
-    function getPointPosition(index) {
-      const angle = getAxisAngle(index);
-      const radius = (values[index] / 10) * maxRadius;
-      return polarToCartesian(angle, radius);
-    }
-
-    function getBadgePosition(index) {
-      const angle = getAxisAngle(index);
-      const p = getPointPosition(index);
-      return {
-        x: p.x + Math.cos(angle) * badgeDistance,
-        y: p.y + Math.sin(angle) * badgeDistance
-      };
-    }
-
-    function getLabelConfig(index) {
-      const angle = getAxisAngle(index);
-      const cos = Math.cos(angle);
-      const sin = Math.sin(angle);
-      const label = labels[index];
-
-      let distance = maxRadius + 82;
-      let textAnchor = "middle";
-      let dx = 0;
-      let dy = 0;
-
-      if (cos > 0.75) {
-        distance = maxRadius + 96;
-        textAnchor = "start";
-        dx = 14;
-      } else if (cos < -0.75) {
-        distance = maxRadius + 96;
-        textAnchor = "end";
-        dx = -14;
-      } else if (sin > 0.75) {
-        distance = maxRadius + 88;
-        dy = 16;
-      } else if (sin < -0.75) {
-        distance = maxRadius + 96;
-        dy = -8;
-      }
-
-      if (label === "Finanças") {
-        distance = maxRadius + 110;
-        textAnchor = "start";
-        dx = 22;
-      }
-
-      if (label === "Vida Social") {
-        distance = maxRadius + 110;
-        textAnchor = "end";
-        dx = -22;
-      }
-
-      if (label === "Emocional") {
-        distance = maxRadius + 104;
-        textAnchor = "start";
-        dx = 12;
-      }
-
-      if (label === "Amoroso") {
-        distance = maxRadius + 104;
-        textAnchor = "end";
-        dx = -12;
-      }
-
-      if (label === "Intelectual") {
-        distance = maxRadius + 98;
-        dy = -8;
-      }
-
-      if (label === "Plenitude") {
-        distance = maxRadius + 98;
-        dy = 18;
-      }
-
-      return { angle, distance, textAnchor, dx, dy };
-    }
-
-    function drawRadar() {
-      svg.innerHTML = "";
-
-      for (let level = 1; level <= levels; level++) {
-        const radius = (level / levels) * maxRadius;
-        const ringPoints = [];
-
-        for (let i = 0; i < totalAxes; i++) {
-          const angle = getAxisAngle(i);
-          const p = polarToCartesian(angle, radius);
-          ringPoints.push(`${p.x},${p.y}`);
-        }
-
-        svg.appendChild(createSvgElement("polygon", {
-          points: ringPoints.join(" "),
-          class: "grid"
-        }));
-      }
-
-      for (let i = 0; i < totalAxes; i++) {
-        const angle = getAxisAngle(i);
-        const end = polarToCartesian(angle, maxRadius);
-
-        svg.appendChild(createSvgElement("line", {
-          x1: cx,
-          y1: cy,
-          x2: end.x,
-          y2: end.y,
-          class: "axis"
-        }));
-      }
-
-      svg.appendChild(createSvgElement("polygon", {
-        points: buildPolygonPoints(),
-        class: "area"
-      }));
-
-      for (let i = 0; i < totalAxes; i++) {
-        const angle = getAxisAngle(i);
-        const p = getPointPosition(i);
-        const badge = getBadgePosition(i);
-
-        svg.appendChild(createSvgElement("circle", {
-          cx: p.x,
-          cy: p.y,
-          r: pointRadius,
-          class: draggingAxisIndex === i ? "point dragging" : "point"
-        }));
-
-        svg.appendChild(createSvgElement("circle", {
-          cx: badge.x,
-          cy: badge.y,
-          r: badgeRadius,
-          class: "value-badge"
-        }));
-
-        const valueText = createSvgElement("text", {
-          x: badge.x,
-          y: badge.y + 0.5,
-          class: "value-text"
-        });
-        valueText.textContent = values[i];
-        svg.appendChild(valueText);
-      }
-
-      for (let i = 0; i < totalAxes; i++) {
-        const cfg = getLabelConfig(i);
-        const labelPos = polarToCartesian(cfg.angle, cfg.distance);
-
-        const txt = createSvgElement("text", {
-          x: labelPos.x + cfg.dx,
-          y: labelPos.y + cfg.dy,
-          class: "label",
-          "text-anchor": cfg.textAnchor,
-          "dominant-baseline": "middle"
-        });
-
-        txt.textContent = labels[i];
-        svg.appendChild(txt);
-      }
-
-      svg.appendChild(createSvgElement("circle", {
-        cx: cx,
-        cy: cy,
-        r: 4,
-        fill: "#6b7280"
-      }));
-    }
-
-    function getSvgPointFromEvent(event) {
-      const rect = svg.getBoundingClientRect();
-      const scale = 920 / rect.width;
-
-      return {
-        x: (event.clientX - rect.left) * scale,
-        y: (event.clientY - rect.top) * scale
-      };
-    }
-
-    function distance(a, b) {
-      const dx = a.x - b.x;
-      const dy = a.y - b.y;
-      return Math.sqrt(dx * dx + dy * dy);
-    }
-
-    function pointToSegmentDistance(point, segA, segB) {
-      const vx = segB.x - segA.x;
-      const vy = segB.y - segA.y;
-      const wx = point.x - segA.x;
-      const wy = point.y - segA.y;
-
-      const c1 = vx * wx + vy * wy;
-      if (c1 <= 0) return distance(point, segA);
-
-      const c2 = vx * vx + vy * vy;
-      if (c2 <= c1) return distance(point, segB);
-
-      const t = c1 / c2;
-      const proj = {
-        x: segA.x + t * vx,
-        y: segA.y + t * vy
-      };
-
-      return distance(point, proj);
-    }
-
-    function getAxisNearPoint(point) {
-      const axisBandDistance = 34;
-      const pointCaptureDistance = 58;
-      const badgeCaptureDistance = 64;
-
-      let bestAxis = null;
-      let bestScore = Infinity;
-
-      for (let i = 0; i < totalAxes; i++) {
-        const pointPos = getPointPosition(i);
-        const badgePos = getBadgePosition(i);
-        const axisEnd = polarToCartesian(getAxisAngle(i), maxRadius);
-
-        const distPoint = distance(point, pointPos);
-        const distBadge = distance(point, badgePos);
-        const distAxis = pointToSegmentDistance(point, { x: cx, y: cy }, axisEnd);
-
-        let score = Infinity;
-
-        if (distPoint <= pointCaptureDistance) {
-          score = Math.min(score, distPoint);
-        }
-
-        if (distBadge <= badgeCaptureDistance) {
-          score = Math.min(score, distBadge - 4);
-        }
-
-        if (distAxis <= axisBandDistance) {
-          score = Math.min(score, distAxis + 12);
-        }
-
-        if (score < bestScore) {
-          bestScore = score;
-          bestAxis = i;
-        }
-      }
-
-      return bestAxis;
-    }
-
-    function updateAxisValueFromPoint(axisIndex, point) {
-      const dx = point.x - cx;
-      const dy = point.y - cy;
-      const distanceFromCenter = Math.sqrt(dx * dx + dy * dy);
-      const normalizedValue = clamp(Math.round((distanceFromCenter / maxRadius) * 10), 0, 10);
-
-      values[axisIndex] = normalizedValue;
-      drawRadar();
-    }
-
-    function updateNearestAxisFromPoint(point) {
-      const dx = point.x - cx;
-      const dy = point.y - cy;
-      const angle = Math.atan2(dy, dx);
-      const distanceFromCenter = Math.sqrt(dx * dx + dy * dy);
-
-      const axisIndex = getNearestAxisIndex(angle);
-      const normalizedValue = clamp(Math.round((distanceFromCenter / maxRadius) * 10), 0, 10);
-
-      values[axisIndex] = normalizedValue;
-      drawRadar();
-    }
-
-    function handlePointerDown(event) {
-      event.preventDefault();
-
-      activePointerId = event.pointerId;
-      if (svg.setPointerCapture) {
-        svg.setPointerCapture(event.pointerId);
-      }
-
-      const point = getSvgPointFromEvent(event);
-      draggingAxisIndex = getAxisNearPoint(point);
-
-      if (draggingAxisIndex !== null) {
-        updateAxisValueFromPoint(draggingAxisIndex, point);
-      } else {
-        updateNearestAxisFromPoint(point);
-      }
-    }
-
-    function handlePointerMove(event) {
-      if (activePointerId !== event.pointerId) return;
-      if (draggingAxisIndex === null) return;
-
-      event.preventDefault();
-      const point = getSvgPointFromEvent(event);
-      updateAxisValueFromPoint(draggingAxisIndex, point);
-    }
-
-    function handlePointerUp(event) {
-      if (activePointerId !== event.pointerId) return;
-
-      if (svg.releasePointerCapture) {
-        try {
-          svg.releasePointerCapture(event.pointerId);
-        } catch (e) {}
-      }
-
-      activePointerId = null;
-      draggingAxisIndex = null;
-      drawRadar();
-    }
-
-    svg.addEventListener("pointerdown", handlePointerDown);
-    svg.addEventListener("pointermove", handlePointerMove);
-    svg.addEventListener("pointerup", handlePointerUp);
-    svg.addEventListener("pointercancel", handlePointerUp);
-    svg.addEventListener("pointerleave", handlePointerUp);
-
-    resetBtn.addEventListener("click", () => {
-      values = new Array(labels.length).fill(10);
-      draggingAxisIndex = null;
-      activePointerId = null;
-      drawRadar();
-    });
-
-    drawRadar();
-  </script>
+
+<div class="page">
+
+<h1>Roda da Vida</h1>
+<p class="subtitulo">Toque no gráfico ou arraste a bolinha para ajustar a nota</p>
+
+<div class="card">
+
+<svg id="radar" viewBox="0 0 1000 1000"></svg>
+
+<div class="controls">
+<button id="resetBtn">Resetar tudo para 10</button>
+</div>
+
+</div>
+</div>
+
+<script>
+
+const labels=[
+"Intelectual",
+"Saúde",
+"Emocional",
+"Finanças",
+"Contribuição Social",
+"Plenitude",
+"Espiritualidade",
+"Vida Social",
+"Amoroso",
+"Família"
+];
+
+let values=new Array(labels.length).fill(10);
+
+const svg=document.getElementById("radar");
+const resetBtn=document.getElementById("resetBtn");
+
+const cx=500;
+const cy=500;
+const maxRadius=340;
+const levels=10;
+const totalAxes=labels.length;
+const startAngle=-Math.PI/2;
+
+let draggingAxisIndex=null;
+let activePointerId=null;
+
+function polarToCartesian(angle,radius){
+return{
+x:cx+Math.cos(angle)*radius,
+y:cy+Math.sin(angle)*radius
+};
+}
+
+function clamp(v,min,max){
+return Math.max(min,Math.min(max,v));
+}
+
+function getAxisAngle(i){
+return startAngle+(2*Math.PI*i/totalAxes);
+}
+
+function normalizeAngle(a){
+while(a<-Math.PI)a+=2*Math.PI;
+while(a>Math.PI)a-=2*Math.PI;
+return a;
+}
+
+function getNearestAxisIndex(angle){
+
+let best=0;
+let bestDiff=Infinity;
+
+for(let i=0;i<totalAxes;i++){
+
+const diff=Math.abs(normalizeAngle(angle-getAxisAngle(i)));
+
+if(diff<bestDiff){
+bestDiff=diff;
+best=i;
+}
+
+}
+
+return best;
+
+}
+
+function createSvg(tag,attrs={}){
+
+const el=document.createElementNS("http://www.w3.org/2000/svg",tag);
+
+Object.entries(attrs).forEach(([k,v])=>el.setAttribute(k,v));
+
+return el;
+
+}
+
+function buildPolygon(){
+
+return values.map((v,i)=>{
+
+const angle=getAxisAngle(i);
+const r=(v/10)*maxRadius;
+const p=polarToCartesian(angle,r);
+
+return`${p.x},${p.y}`;
+
+}).join(" ");
+
+}
+
+function getLabelConfig(i){
+
+const label=labels[i];
+
+let distance=maxRadius+70;
+let dx=0;
+let dy=0;
+let anchor="middle";
+
+if(label==="Vida Social"){
+distance=maxRadius+65;
+dx=-8;
+anchor="end";
+}
+
+if(label==="Amoroso"){
+distance=maxRadius+72;
+dx=-12;
+anchor="end";
+}
+
+if(label==="Família"){
+distance=maxRadius+75;
+dx=-6;
+anchor="end";
+}
+
+if(label==="Saúde"){
+distance=maxRadius+72;
+dx=6;
+anchor="start";
+}
+
+if(label==="Emocional"){
+distance=maxRadius+70;
+dx=18;
+anchor="start";
+}
+
+if(label==="Finanças"){
+distance=maxRadius+70;
+dx=18;
+anchor="start";
+}
+
+if(label==="Contribuição Social"){
+distance=maxRadius+74;
+dx=8;
+anchor="start";
+}
+
+return{distance,dx,dy,anchor};
+
+}
+
+function draw(){
+
+svg.innerHTML="";
+
+for(let l=1;l<=levels;l++){
+
+const r=(l/levels)*maxRadius;
+const pts=[];
+
+for(let i=0;i<totalAxes;i++){
+
+const p=polarToCartesian(getAxisAngle(i),r);
+pts.push(`${p.x},${p.y}`);
+
+}
+
+svg.appendChild(createSvg("polygon",{points:pts.join(" "),class:"grid"}));
+
+}
+
+for(let i=0;i<totalAxes;i++){
+
+const end=polarToCartesian(getAxisAngle(i),maxRadius);
+
+svg.appendChild(createSvg("line",{
+x1:cx,
+y1:cy,
+x2:end.x,
+y2:end.y,
+class:"axis"
+}));
+
+}
+
+svg.appendChild(createSvg("polygon",{points:buildPolygon(),class:"area"}));
+
+for(let i=0;i<totalAxes;i++){
+
+const angle=getAxisAngle(i);
+const r=(values[i]/10)*maxRadius;
+const p=polarToCartesian(angle,r);
+
+svg.appendChild(createSvg("circle",{
+cx:p.x,
+cy:p.y,
+r:16,
+class:"point"
+}));
+
+const bx=p.x+Math.cos(angle)*36;
+const by=p.y+Math.sin(angle)*36;
+
+svg.appendChild(createSvg("circle",{
+cx:bx,
+cy:by,
+r:16,
+class:"value-badge"
+}));
+
+const t=createSvg("text",{x:bx,y:by+1,class:"value-text"});
+t.textContent=values[i];
+svg.appendChild(t);
+
+}
+
+for(let i=0;i<totalAxes;i++){
+
+const angle=getAxisAngle(i);
+const cfg=getLabelConfig(i);
+const p=polarToCartesian(angle,cfg.distance);
+
+const txt=createSvg("text",{
+x:p.x+cfg.dx,
+y:p.y,
+class:"label",
+"text-anchor":cfg.anchor,
+"dominant-baseline":"middle"
+});
+
+txt.textContent=labels[i];
+svg.appendChild(txt);
+
+}
+
+svg.appendChild(createSvg("circle",{cx:cx,cy:cy,r:4,fill:"#6b7280"}));
+
+}
+
+function getPoint(evt){
+
+const rect=svg.getBoundingClientRect();
+const scale=1000/rect.width;
+
+return{
+x:(evt.clientX-rect.left)*scale,
+y:(evt.clientY-rect.top)*scale
+};
+
+}
+
+function update(point){
+
+const dx=point.x-cx;
+const dy=point.y-cy;
+
+const angle=Math.atan2(dy,dx);
+const dist=Math.sqrt(dx*dx+dy*dy);
+
+const axis=getNearestAxisIndex(angle);
+
+values[axis]=clamp(Math.round((dist/maxRadius)*10),0,10);
+
+draw();
+
+}
+
+function pointerDown(e){
+
+activePointerId=e.pointerId;
+
+update(getPoint(e));
+
+}
+
+function pointerMove(e){
+
+if(e.pointerId!==activePointerId)return;
+
+update(getPoint(e));
+
+}
+
+function pointerUp(e){
+
+activePointerId=null;
+
+}
+
+svg.addEventListener("pointerdown",pointerDown);
+svg.addEventListener("pointermove",pointerMove);
+svg.addEventListener("pointerup",pointerUp);
+svg.addEventListener("pointercancel",pointerUp);
+
+resetBtn.onclick=()=>{
+values=new Array(labels.length).fill(10);
+draw();
+};
+
+draw();
+
+</script>
+
 </body>
 </html>
